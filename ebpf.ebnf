@@ -1,4 +1,4 @@
-controlFlowGraph= basicBlock ;
+controlFlowGraph = basicBlock ;
 
 basicBlock= (instruction,'\n')+, movR0, '\n',exitInstruction;
 

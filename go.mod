@@ -2,12 +2,12 @@ module ebpf-generator
 
 go 1.21.1
 
-toolchain go1.21.5
-
-require github.com/cilium/ebpf v0.12.3
-
+replace (
+	github.com/CUHK-SE-Group/generic-generator v0.0.0-20240110084957-9f42822c0dc9 => ../generic-generator
+)
 require (
-	github.com/CUHK-SE-Group/generic-generator v0.0.0-20240109045115-9790c6b7a80f
+	github.com/CUHK-SE-Group/generic-generator v0.0.0-20240110084957-9f42822c0dc9
+	github.com/cilium/ebpf v0.9.3
 	github.com/google/safehtml v0.1.0
 	gvisor.dev/gvisor v0.0.0-20240109032559-fc0349e3ac32
 )
