@@ -6,18 +6,20 @@ import (
 	"ebpf-generator/metric"
 	"encoding/binary"
 	"fmt"
+	"github.com/cilium/ebpf/rlimit"
 	"log"
 	"log/slog"
 	"math/rand"
+	"os/exec"
 	"regexp"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/CUHK-SE-Group/generic-generator/parser"
 	"github.com/CUHK-SE-Group/generic-generator/schemas"
 	"github.com/cilium/ebpf"
 	"github.com/cilium/ebpf/asm"
-	"github.com/cilium/ebpf/rlimit"
 )
 
 type WeightedHandler struct {
@@ -276,16 +278,37 @@ func main() {
 		log.Fatalf("无法提升 memlock 限制: %v", err)
 	}
 	cov := &metric.CoverageData{
-		coverageSize: 1024,
-		fd:           -1,
+		CoverageSize: 1024,
+		Fd:           -1,
 	}
-	enableCoverage(cov)
+	vmLinuxPath := "/home/nn/linux/vmLinux"
+	mgr := metric.NewCoverageManagerImpl(func(inputString string) (string, error) {
+		cmd := exec.Command("/usr/bin/addr2line", "-e", vmLinuxPath)
+		w, err := cmd.StdinPipe()
+		if err != nil {
+			return "", err
+		}
+		w.Write([]byte(inputString))
+		w.Close()
+		outBytes, err := cmd.Output()
+		return string(outBytes), err
+	})
+
+	metricUnit := metric.NewMetricsUnit(1, 1, vmLinuxPath, "/home/nn/linux/kernel/bpf", "0.0.0.0", 8080, mgr)
+	metric.EnableCoverage(cov)
 	// 加载 eBPF 程序
 	prog, err := ebpf.NewProgramWithOptions(progSpec, ebpf.ProgramOptions{
 		LogLevel: ebpf.LogLevelInstruction,
 	})
-	getCoverageAndFreeResources(cov)
-	fmt.Println(cov)
+	result, err := mgr.ProcessCoverageAddresses(cov.CoverageBuffer)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(result)
+	metricResults := metric.GetCoverageAndFreeResources(cov)
+
+	metricUnit.RecordVerificationResults(metricResults)
+	time.Sleep(20 * time.Second)
 	if err != nil {
 		log.Fatalf("加载 eBPF 程序失败: %v", err)
 	}

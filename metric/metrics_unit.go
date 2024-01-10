@@ -28,6 +28,7 @@ type ValidationResult struct {
 	DidCollectCoverage bool
 
 	CoverageAddress []uint64
+	CoverageData    *CoverageData
 }
 
 func (vr *ValidationResult) GetIsValid() bool {
