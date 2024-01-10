@@ -6,6 +6,10 @@ import (
 	"ebpf-generator/metric"
 	"encoding/binary"
 	"fmt"
+	"github.com/CUHK-SE-Group/generic-generator/parser"
+	"github.com/CUHK-SE-Group/generic-generator/schemas"
+	"github.com/cilium/ebpf"
+	"github.com/cilium/ebpf/asm"
 	"github.com/cilium/ebpf/rlimit"
 	"log"
 	"log/slog"
@@ -15,11 +19,6 @@ import (
 	"strconv"
 	"strings"
 	"time"
-
-	"github.com/CUHK-SE-Group/generic-generator/parser"
-	"github.com/CUHK-SE-Group/generic-generator/schemas"
-	"github.com/cilium/ebpf"
-	"github.com/cilium/ebpf/asm"
 )
 
 type WeightedHandler struct {
@@ -273,7 +272,6 @@ func main() {
 	}
 	fmt.Println(progSpec.Instructions)
 
-	// 提升资源限制
 	if err := rlimit.RemoveMemlock(); err != nil {
 		log.Fatalf("无法提升 memlock 限制: %v", err)
 	}
@@ -281,7 +279,7 @@ func main() {
 		CoverageSize: 1024,
 		Fd:           -1,
 	}
-	vmLinuxPath := "/home/nn/linux/vmLinux"
+	vmLinuxPath := "/home/nn/vmlinux"
 	mgr := metric.NewCoverageManagerImpl(func(inputString string) (string, error) {
 		cmd := exec.Command("/usr/bin/addr2line", "-e", vmLinuxPath)
 		w, err := cmd.StdinPipe()
@@ -290,25 +288,21 @@ func main() {
 		}
 		w.Write([]byte(inputString))
 		w.Close()
-		outBytes, err := cmd.Output()
+		outBytes, err := cmd.CombinedOutput()
+		fmt.Println(string(outBytes))
 		return string(outBytes), err
 	})
 
-	metricUnit := metric.NewMetricsUnit(1, 1, vmLinuxPath, "/home/nn/linux/kernel/bpf", "0.0.0.0", 8080, mgr)
+	metricUnit := metric.NewMetricsUnit(1, 1, vmLinuxPath, "/home/nn/linux/kernel/bpf", "0.0.0.0", 9999, mgr)
 	metric.EnableCoverage(cov)
 	// 加载 eBPF 程序
 	prog, err := ebpf.NewProgramWithOptions(progSpec, ebpf.ProgramOptions{
 		LogLevel: ebpf.LogLevelInstruction,
 	})
-	result, err := mgr.ProcessCoverageAddresses(cov.CoverageBuffer)
-	if err != nil {
-		panic(err)
-	}
-	fmt.Println(result)
 	metricResults := metric.GetCoverageAndFreeResources(cov)
 
 	metricUnit.RecordVerificationResults(metricResults)
-	time.Sleep(20 * time.Second)
+	time.Sleep(100 * time.Second)
 	if err != nil {
 		log.Fatalf("加载 eBPF 程序失败: %v", err)
 	}

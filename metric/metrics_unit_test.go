@@ -15,6 +15,8 @@
 package metric
 
 import (
+	"fmt"
+	"os/exec"
 	"testing"
 )
 
@@ -63,4 +65,13 @@ func TestMetrics(t *testing.T) {
 	if len(metricsUnit.validationResultQueue) != 1 {
 		t.Errorf("len(metricsUnit.validationResultQueue) = %d, want %d", len(metricsUnit.validationResultQueue), 1)
 	}
+}
+
+func TestAddr2Line(t *testing.T) {
+	cmd := exec.Command("/usr/bin/addr2line", "-e", "/home/nn/vmlinux")
+	w, err := cmd.StdinPipe()
+	w.Write([]byte("ffffffff8117ee3b\nffffffff8117ee40\nffffffff8117ee52\nffffffff8117ee64\nffffffff8117ee8e\nffffffff8117ef2b\n"))
+	w.Close()
+	output, err := cmd.CombinedOutput()
+	fmt.Printf("error:  %+v\nouput: %s", err, string(output))
 }

@@ -16,9 +16,7 @@ package metric
 
 import (
 	"bufio"
-	"errors"
 	"fmt"
-	"log/slog"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -74,7 +72,6 @@ func (ms *MetricsServer) handleFileCoverage(w http.ResponseWriter, req *http.Req
 			covInfo = &cov
 			break
 		}
-		slog.Info("code coverage files", "filename", cov.fileName)
 	}
 
 	if covInfo == nil {
@@ -137,6 +134,7 @@ type generalInfo struct {
 }
 
 func (ms *MetricsServer) handleIndex(w http.ResponseWriter, req *http.Request) {
+	fmt.Println("received request general")
 	programsVerified, validPrograms, coverageInformation := ms.metricsCollection.getMetrics()
 	gi := &generalInfo{
 		ProgramsVerified: programsVerified,
@@ -151,8 +149,9 @@ func (ms *MetricsServer) handleIndex(w http.ResponseWriter, req *http.Request) {
 			FullPath:     covInfo.fullPath,
 			CoveredLines: len(covInfo.coveredLines),
 		}
+		fmt.Println(fc)
 		_, err := os.Stat(filepath.Join(ms.filePath, covInfo.fileName))
-		fc.FileExists = !errors.Is(err, os.ErrNotExist)
+		fc.FileExists = !os.IsNotExist(err)
 		gi.CoveredFiles = append(gi.CoveredFiles, fc)
 	}
 
@@ -165,6 +164,9 @@ func (ms *MetricsServer) handleIndex(w http.ResponseWriter, req *http.Request) {
 	fmt.Fprintf(w, "<h2>%s</h2>\n", statsLine)
 	fmt.Fprintf(w, "<ul>\n")
 	for _, coveredFile := range gi.CoveredFiles {
+		if !coveredFile.FileExists {
+			continue
+		}
 		fmt.Fprintf(w, "<li>\n")
 		var safeFileName string
 		if coveredFile.FileExists {
@@ -193,5 +195,9 @@ func (ms *MetricsServer) handleIndex(w http.ResponseWriter, req *http.Request) {
 func (ms *MetricsServer) serve() {
 	http.HandleFunc("/general", ms.handleIndex)
 	http.HandleFunc("/fileCoverage", ms.handleFileCoverage)
-	http.ListenAndServe(fmt.Sprintf("%s:%d", ms.host, ms.port), nil)
+	fmt.Println("serving11 ", fmt.Sprintf("%s:%d", ms.host, ms.port))
+	err := http.ListenAndServe(fmt.Sprintf("%s:%d", ms.host, ms.port), nil)
+	if err != nil {
+		panic(err)
+	}
 }

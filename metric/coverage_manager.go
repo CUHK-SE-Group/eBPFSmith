@@ -73,7 +73,6 @@ func (cm *CoverageManagerImpl) ProcessCoverageAddresses(cov []uint64) (map[uint6
 
 	outString, err := cm.addressToLineFunction(inputString)
 	if err != nil {
-		slog.Error("addressToLine error", "err", err, "inputString", inputString)
 		fmt.Printf("addressToLine error: %v\n", err)
 		return nil, err
 	}

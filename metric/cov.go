@@ -1,7 +1,6 @@
 package metric
 
 import (
-	"fmt"
 	"os"
 	"reflect"
 	"syscall"
@@ -65,7 +64,6 @@ func GetCoverageAndFreeResources(coverageInfo *CoverageData) *ValidationResult {
 	seenAddress := make(map[uint64]bool)
 	for i := uint64(0); i < traceSize; i++ {
 		addr := coverageInfo.CoverageBuffer[i+1]
-		fmt.Println("addr: ", addr)
 		if _, exists := seenAddress[addr]; !exists {
 			// Add to coverage addresses
 			seenAddress[addr] = true

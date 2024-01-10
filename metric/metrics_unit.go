@@ -102,13 +102,12 @@ func (mu *Metrics) validationResultProcessingRoutine() {
 	for {
 		vres := mu.dequeueValidationResult()
 		if vres == nil {
-			slog.Info("the metric dequeue is nil")
 			time.Sleep(1 * time.Second)
 			continue
 		}
 		_, err := mu.metricsCollection.coverageManager.ProcessCoverageAddresses(vres.GetCoverageAddress())
 		if err != nil {
-			fmt.Printf("%q\n", err)
+			fmt.Printf("%s\n", err)
 		}
 	}
 }
