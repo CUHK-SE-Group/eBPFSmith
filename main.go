@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"context"
+	"ebpf-generator/metric"
 	"encoding/binary"
 	"fmt"
 	"log"
@@ -274,8 +275,8 @@ func main() {
 	if err := rlimit.RemoveMemlock(); err != nil {
 		log.Fatalf("无法提升 memlock 限制: %v", err)
 	}
-	cov := &CoverageData{
-		coverageSize: 40000,
+	cov := &metric.CoverageData{
+		coverageSize: 1024,
 		fd:           -1,
 	}
 	enableCoverage(cov)
