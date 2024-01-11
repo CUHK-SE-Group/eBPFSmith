@@ -4,27 +4,19 @@ import (
 	"bytes"
 	"encoding/binary"
 	"fmt"
+	"log"
+	"testing"
+
 	"github.com/cilium/ebpf"
 	"github.com/cilium/ebpf/asm"
-	"log"
 )
 
-func Validate(codes []string) {
-	fmt.Println("========================================validating log========================================")
-	var instructions []uint64
-
-	for _, code := range codes {
-		h, _ := BinaryToHex(code)
-		fmt.Printf("\n%v", h)
-
-		instruction, err := BinaryStringToUint64(code)
-		if err != nil {
-			panic(err)
-		}
-		instructions = append(instructions, instruction)
+func TestValidate(t *testing.T) {
+	instructions := []uint64{
+		7639445453340661378,
+		13186539708940812288,
+		10736581511651262464,
 	}
-	fmt.Println()
-	// 将 uint64 数组转换为字节序列
 	fmt.Printf("\nuint64 format instruction:")
 	buf := new(bytes.Buffer)
 	for _, instr := range instructions {
@@ -52,6 +44,8 @@ func Validate(codes []string) {
 
 	if err == nil {
 		fmt.Println("verifier log: ", prog.VerifierLog)
+	} else {
+		panic(err)
 	}
 	defer prog.Close()
 
