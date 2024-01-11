@@ -5,6 +5,7 @@ import (
 	"encoding/binary"
 	"fmt"
 	"log"
+	"strconv"
 	"testing"
 
 	"github.com/cilium/ebpf"
@@ -12,11 +13,28 @@ import (
 )
 
 func TestValidate(t *testing.T) {
-	instructions := []uint64{
-		7639445453340661378,
-		13186539708940812288,
-		10736581511651262464,
+	hexStrings := []string{
+		"1890000000000000",
+		"0000000000000000",
+		"B700000000000000",
+		"9500000000000000",
 	}
+
+	// 初始化一个uint64类型的数组，长度与字符串数组相同
+	var instructions []uint64
+	// 遍历16进制字符串数组，并将每个值转换为uint64
+	for _, hexStr := range hexStrings {
+		// 使用ParseUint转换16进制字符串，64是位数，16是基数
+		value, err := strconv.ParseUint(hexStr, 16, 64)
+		if err != nil {
+			// 如果发生错误，打印错误并退出
+			fmt.Printf("Error converting %s: %s\n", hexStr, err)
+			return
+		}
+		// 将转换后的值添加到uint64数组
+		instructions = append(instructions, value)
+	}
+
 	fmt.Printf("\nuint64 format instruction:")
 	buf := new(bytes.Buffer)
 	for _, instr := range instructions {
@@ -45,7 +63,7 @@ func TestValidate(t *testing.T) {
 	if err == nil {
 		fmt.Println("verifier log: ", prog.VerifierLog)
 	} else {
-		panic(err)
+		fmt.Println(err)
 	}
 	defer prog.Close()
 

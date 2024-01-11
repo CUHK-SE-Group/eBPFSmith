@@ -54,5 +54,4 @@ func Validate(codes []string) {
 		fmt.Println("verifier log: ", prog.VerifierLog)
 	}
 	defer prog.Close()
-
 }

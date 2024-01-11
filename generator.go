@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"github.com/CUHK-SE-Group/generic-generator/parser"
 	"github.com/CUHK-SE-Group/generic-generator/schemas"
@@ -49,7 +50,7 @@ func BinaryToHex(binaryString string) (string, error) {
 
 func BinaryStringToUint64(binaryString string) (uint64, error) {
 	if len(binaryString) != 64 {
-		return 0, fmt.Errorf("binary string must be 64 bits long")
+		return 0, fmt.Errorf("binary string must be 64 bits long, cur: %s", binaryString)
 	}
 
 	value, err := strconv.ParseUint(binaryString, 2, 64)
@@ -142,19 +143,19 @@ func (h *EBPFTermHandler) Handle(chain *schemas.Chain, ctx *schemas.Context, cb 
 		return
 	}
 	fmt.Println(cur.GetID(), cur.GetContent())
-	if cur.GetID() == "offset#0" {
-		bits, err := GenerateRandomBinaryString(16)
-		if err != nil {
-			panic(err)
-		}
-		cur.SetContent(bits)
-	} else if cur.GetID() == "imm#0" {
-		bits, err := GenerateRandomBinaryString(32)
-		if err != nil {
-			panic(err)
-		}
-		cur.SetContent(bits)
-	}
+	//if cur.GetID() == "offset#0" {
+	//	bits, err := GenerateRandomBinaryString(16)
+	//	if err != nil {
+	//		panic(err)
+	//	}
+	//	cur.SetContent(bits)
+	//} else if cur.GetID() == "imm#0" {
+	//	bits, err := GenerateRandomBinaryString(32)
+	//	if err != nil {
+	//		panic(err)
+	//	}
+	//	cur.SetContent(bits)
+	//}
 	ctx.Result.AddEdge(cur, cur) // 用一个自环标记到达了最后的终结符节点
 	chain.Next(ctx, cb)
 }
@@ -191,24 +192,31 @@ func (h *MonitorHandler) Handle(chain *schemas.Chain, ctx *schemas.Context, cb s
 		return
 	}
 	cur := ctx.SymbolStack.Top()
-	slog.Info("passing", "id", cur.GetID())
+	slog.Info("passing", "id", cur.GetID(), "content", cur.GetContent())
 	constraints := ctx.Constraint.GetConstraints()
+	trace := append(ctx.SymbolStack.ProductionTrace, strings.Split(strings.TrimSpace(cur.GetID()), "#")[0])
+
+	var err error
 	for _, v := range constraints {
-		if query.MatchPattern(ctx.SymbolStack.ProductionTrace, v.FirstNode) {
+		if query.MatchPattern(trace, v.FirstNode) {
 			switch v.FirstOp.Type {
 			case schemas.FUNC:
-				ctx, _ = v.FirstOp.Func(ctx)
+				ctx, err = v.FirstOp.Func(ctx)
 			case schemas.REGEX:
 
 			}
 		}
-		if query.MatchPattern(ctx.SymbolStack.ProductionTrace, v.SecondNode) {
+		if query.MatchPattern(trace, v.SecondNode) {
 			switch v.SecondOp.Type {
 			case schemas.FUNC:
-				ctx, _ = v.SecondOp.Func(ctx)
+				ctx, err = v.SecondOp.Func(ctx)
 			case schemas.REGEX:
 
 			}
+		}
+		switch {
+		case errors.Is(err, schemas.ErrIntercept):
+			return
 		}
 	}
 	chain.Next(ctx, cb)
@@ -266,5 +274,6 @@ func Generate() []string {
 		return content
 	})
 	codes := strings.Split(res, "\\n")
+	fmt.Println(codes)
 	return codes
 }

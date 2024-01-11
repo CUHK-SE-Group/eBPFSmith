@@ -1,5 +1,7 @@
 github.com/CUHK-SE-Group/generic-generator v0.0.0-20240110084957-9f42822c0dc9 h1:AShOuz9Ws20dzZW0SK1w2+ZwZCjAO3gTP+wcSbDeZeE=
 github.com/CUHK-SE-Group/generic-generator v0.0.0-20240110084957-9f42822c0dc9/go.mod h1:4SkNCu8CCmrAoJbfS4FZfMIZUInfBbC0QFDLZUY75Nw=
+github.com/CUHK-SE-Group/generic-generator v0.0.0-20240111040354-4459d0783638 h1:kbm/ny7J/QMK6S5aBgH0aWARdf9J7W7o+2zDxyY739A=
+github.com/CUHK-SE-Group/generic-generator v0.0.0-20240111040354-4459d0783638/go.mod h1:4SkNCu8CCmrAoJbfS4FZfMIZUInfBbC0QFDLZUY75Nw=
 github.com/IBM/fp-go v1.0.56 h1:LGLHYh3mJZt7utGAbdfCKFCaxqOJhN/9v8tDyLiY05Q=
 github.com/IBM/fp-go v1.0.56/go.mod h1:VaZsB98yLOqZB/8ZjiSfhMa0T+R7/HhAKsuGWy6S+Os=
 github.com/antlr4-go/antlr/v4 v4.13.0 h1:lxCg3LAv+EUK6t1i0y1V6/SLeUi0eKEKdhQAlS8TVTI=
