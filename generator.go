@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/CUHK-SE-Group/generic-generator/graph"
 	"github.com/CUHK-SE-Group/generic-generator/parser"
 	"github.com/CUHK-SE-Group/generic-generator/schemas"
 	"github.com/CUHK-SE-Group/generic-generator/schemas/query"
@@ -273,6 +274,9 @@ func Generate() []string {
 		}
 		return content
 	})
+	gg := ctx.Result.Grammar
+	gg.MergeProduction()
+	graph.Visualize(ctx.Result.Grammar.GetInternal(), "f.dot", nil)
 	codes := strings.Split(res, "\\n")
 	fmt.Println(codes)
 	return codes

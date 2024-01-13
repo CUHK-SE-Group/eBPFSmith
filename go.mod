@@ -3,7 +3,7 @@ module ebpf-generator
 go 1.21.1
 
 replace (
-	git@github.com:CUHK-SE-Group/generic-generator.git => ../generic-generator
+	github.com/CUHK-SE-Group/generic-generator v0.0.0-20240111040354-4459d0783638 => ../generic-generator
 )
 
 require (
